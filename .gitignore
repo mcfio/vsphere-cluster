@@ -1,0 +1,35 @@
+# Terraform state files
+*.tfstate
+*.tfstate.backup
+
+# Terraform configuration directories
+.terraform/
+
+# Terraform variable definition files (sensitive data)
+*.tfvars
+*.tfvars.json
+
+# Terraform CLI configuration files
+.terraformrc
+terraform.rc
+
+# Crash logs from Terraform runs
+crash.log
+
+# Local override files
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+/.private/
+.DS_Store
+Thumbs.db
+.env
+*.agekey
+*.pub
+*.key
+*.pem
+kubeconfig
+talosconfig
+onepassword.env

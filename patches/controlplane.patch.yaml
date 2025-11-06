@@ -1,0 +1,52 @@
+---
+- op: add
+  path: /machine/network/interfaces/0/vip
+  value:
+    ip: 192.168.60.15
+
+- op: add
+  path: /cluster/scheduler/config
+  value:
+    apiVersion: kubescheduler.config.k8s.io/v1
+    kind: KubeSchedulerConfiguration
+    profiles:
+    - schedulerName: default-scheduler
+      plugins:
+        score:
+          disabled:
+          - name: ImageLocality
+      pluginConfig:
+      - name: PodTopologySpread
+        args:
+          defaultingType: List
+          defaultConstraints:
+          - maxSkew: 1
+            topologyKey: kubernetes.io/hostname
+            whenUnsatisfiable: ScheduleAnyway
+
+- op: remove
+  path: /cluster/apiServer/admissionControl
+
+- op: add
+  path: /cluster/etcd/extraArgs
+  value:
+    listen-metrics-urls: http://0.0.0.0:2381
+
+- op: add
+  path: /cluster/etcd/advertisedSubnets
+  value:
+  - 192.168.60.0/24
+
+- op: add
+  path: /cluster/controllerManager/extraArgs
+  value:
+    bind-address: 0.0.0.0
+
+- op: add
+  path: /cluster/scheduler/extraArgs
+  value:
+    bind-address: 0.0.0.0
+
+- op: add
+  path: /cluster/proxy/disabled
+  value: true

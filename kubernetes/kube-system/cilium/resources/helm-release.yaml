@@ -1,0 +1,89 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.mcf.io/helm.toolkit.fluxcd.io/helmrelease_v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: cilium
+spec:
+  interval: 12h
+  chartRef:
+    kind: OCIRepository
+    name: cilium
+  timeout: 15m
+  values:
+    autoDirectNodeRoutes: true
+    bpf:
+      datapathMode: netkit
+      masquerade: true
+      preallocateMaps: true
+      distributedLRU:
+        enabled: true
+      mapDynamicSizeRatio: 0.08
+    bpfClockProbe: true
+    # bgpControlPlane:
+    #   enabled: false # temporary disabling
+    cgroup:
+      autoMount:
+        enabled: false
+      hostRoot: /sys/fs/cgroup
+    cluster:
+      name: vsphere-cluster
+      id: 200
+    cni:
+      exclusive: false
+    # enableIPv4BIGTCP: true
+    endpointRoutes:
+      enabled: true
+    ipam:
+      mode: kubernetes
+    ipv4NativeRoutingCIDR: 10.244.0.0/16
+    k8sServiceHost: 127.0.0.1
+    k8sServicePort: 7445
+    kubeProxyReplacement: true
+    kubeProxyReplacementHealthzBindAddr: 0.0.0.0:10256
+    localRedirectPolicy: true
+    l2announcements:
+      enabled: true
+    loadBalancer:
+      algorithm: maglev
+      mode: dsr
+    maglev:
+      tableSize: 1021
+      hashSeed: "P9jc887+zv7eNcUr"
+    envoy:
+      enabled: false
+    hubble:
+      enabled: false
+    operator:
+      rollOutPods: true
+      prometheus:
+        enabled: true
+        serviceMonitor:
+          enabled: true
+    pmtuDiscovery:
+      enabled: true
+    prometheus:
+      enabled: true
+      serviceMonitor:
+        enabled: true
+        trustCRDsExist: true
+    rollOutCiliumPods: true
+    routingMode: native
+    securityContext:
+      capabilities:
+        ciliumAgent:
+        - CHOWN
+        - KILL
+        - NET_ADMIN
+        - NET_RAW
+        - IPC_LOCK
+        - SYS_ADMIN
+        - SYS_RESOURCE
+        - DAC_OVERRIDE
+        - FOWNER
+        - SETGID
+        - SETUID
+        cleanCiliumState:
+        - NET_ADMIN
+        - SYS_ADMIN
+        - SYS_RESOURCE

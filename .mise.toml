@@ -1,0 +1,99 @@
+[env]
+MINIJINJA_CONFIG_FILE = "{{config_root}}/.minijinja.toml"
+TALOSCONFIG = "{{config_root}}/talosconfig"
+KUBECONFIG = "{{config_root}}/kubeconfig"
+VSPHERE_USER = "op://private/vCenter/username"
+VSPHERE_PASSWORD = "op://private/vCenter/password"
+
+[tools]
+"uv" = "latest"
+"pipx:flux-local" = "latest"
+"npm:prettier" = "latest"
+"npm:prettier-plugin-jinja-template" = "latest"
+
+[tasks."talos:render-config"]
+alias = "trc"
+quiet = true
+usage = '''
+arg "<node>"
+complete "node" run="mise run kubernetes:common get_nodes"
+'''
+run = '''
+#!/usr/bin/env bash
+talosctl machineconfig patch <(mise run talos:template $usage_node) --patch @talos/nodes/$usage_node.yaml
+'''
+
+[tasks."bootstrap:secrets"]
+hide = true
+quiet = true
+run = '''
+op inject --in-file bootstrap/resources/external-secrets.yaml | \
+  kubectl apply --server-side --field-manager=kustomize-controller --filename -
+'''
+
+[tasks.bootstrap]
+quiet = true
+run = '''
+gum spin --title "Bootstrapping applications with helmfile ..." -- \
+  helmfile --file bootstrap/helmfile.yaml sync --hide-notes
+'''
+
+[tasks."k8s:cleanup"]
+quiet = true
+run = '''
+for phase in Failed Succeeded; do \
+  gum spin --title "Cleaning up $phase pods ..." -- \
+  kubectl delete pods --all-namespaces --field-selector status.phase="$phase" --ignore-not-found=true; \
+done
+'''
+
+[tasks."node:reboot"]
+quiet = true
+run = '''
+#!/usr/bin/env fish
+set action (gum choose --no-limit (talosctl get nodestatuses -o jsonpath='{.spec.nodename}'))
+
+if test -z "$action"
+  echo "No nodes selected, aborting."
+  exit 0
+end
+
+for node in $action
+  gum confirm "Reboot node: $node ?" && echo "Rebooting Node $node"
+end
+'''
+
+[tasks."talos:upgrade"]
+quiet = true
+run = '''
+#!/usr/bin/env fish
+
+kubectl get nodes --output go-template='{{range .items}}{{.metadata.name}}{{"\t"}}{{range $k, $v := .metadata.labels}}{{if eq $k "node-role.kubernetes.io/control-plane"}}{{"control-plane"}}{{end}}{{end}}{{"\n"}}{{end}}'
+
+'''
+
+[tasks."talos:node-completion"]
+hide = true
+quiet = true
+run = "talosctl get nodestatuses.kubernetes.talos.dev --output jsonpath='{.spec.nodename}'"
+
+[tasks."talos:template"]
+hide = true
+quiet = true
+usage = '''
+arg "<node>"
+'''
+run = '''
+minijinja-cli \
+  --define "is_controlplane:=$(mise run talos:is_controlplane $usage_node)" \
+  talos/machineconfig.yaml.j2 | op inject
+'''
+
+[tasks."talos:is_controlplane"]
+hide = true
+quiet = true
+usage = '''
+arg "<node>"
+'''
+run = "yq --raw-output 'select(.machine) | (.machine.type == \"controlplane\")' talos/nodes/$usage_node.yaml"
+

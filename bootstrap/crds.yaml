@@ -1,0 +1,16 @@
+---
+# yaml-language-server: $schema=https://json.schemastore.org/helmfile
+helmDefaults:
+  args:
+  - --include-crds
+  - --no-hooks
+  postRenderer: bash
+  postRendererArgs:
+  - -c
+  - /opt/homebrew/bin/yq ea -e 'select(.kind == "CustomResourceDefinition")'
+
+releases:
+- name: kube-prometheus-stack
+  namespace: observability
+  chart: oci://ghcr.io/prometheus-community/charts/kube-prometheus-stack
+  version: 79.1.1

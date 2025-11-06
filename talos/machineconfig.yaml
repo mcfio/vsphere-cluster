@@ -1,0 +1,38 @@
+---
+machine:
+  kubelet:
+    extraArgs:
+      cloud-provider: external
+    extraConfig:
+      imageGCHighThresholdPercent: 70
+      imageGCLowThresholdPercent: 50
+      serializeImagePulls: false
+    nodeIP:
+      validSubnets:
+      - 192.168.60.0/24
+  network:
+    interfaces:
+    - deviceSelector:
+        driver: vmxnet3
+      dhcp: true
+      mtu: 9000
+  install:
+    diskSelector:
+      size: <=128GB
+    image: ${machine_install_image}
+    wipe: false
+  files:
+  - path: /etc/cri/conf.d/20-customization.part
+    op: create
+    content: |
+      [plugins."io.containerd.cri.v1.images"]
+        discard_unpacked_layers = false
+  features:
+    hostDNS:
+      forwardKubeDNSToHost: false
+      resolveMemberNames: true
+
+cluster:
+  network:
+    cni:
+      name: none

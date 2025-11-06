@@ -1,0 +1,31 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cloud-config
+  namespace: kube-system
+  labels:
+    app: vsphere-cpi
+    component: cloud-controller-manager
+    vsphere-cpi-infra: cloud-config
+data:
+  vsphere.conf: |
+    global:
+      port: 443
+      insecureFlag: true
+      secretName: vsphere-cloud-secret
+      secretNamespace: kube-system
+
+    vcenter:
+      192.168.1.15:
+        server: 192.168.1.15
+        datacenters:
+          - Milton
+
+    labels:
+      region: k8s-region
+      zone: k8s-zone
+
+    nodes:
+      excludeInternalNetworkSubnetCidr: 192.168.60.15/32
+      excludeExternalNetworkSubnetCidr: 192.168.60.0/24

@@ -1,0 +1,6 @@
+---
+- op: remove
+  path: /persist
+
+- op: remove
+  path: /machine/install/disk
