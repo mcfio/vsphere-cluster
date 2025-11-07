@@ -9,9 +9,6 @@ spec:
   chartRef:
     kind: OCIRepository
     name: flux-instance
-  dependsOn:
-  - name: flux-operator
-    namespace: flux-system
   values:
     instance:
       distribution:
@@ -28,11 +25,8 @@ spec:
         kind: GitRepository
         url: https://github.com/mcfio/vsphere-cluster
         ref: refs/heads/main
-        path: kubernetes/flux-system/flux-instance/config
+        path: kubernetes/flux-system/config
         interval: 6h
-      commonMetadata:
-        labels:
-          app.kubernetes.io/name: flux
       kustomize:
         patches:
         - # Increase the number of workers
