@@ -35,8 +35,6 @@ releases:
     - --filename=../kubernetes/kube-system/vsphere-cpi/resources/config-map.yaml
     showlogs: true
 
-# flux (operator|instance)
-
 - name: spegel
   namespace: kube-system
   chart: oci://ghcr.io/spegel-org/helm-charts/spegel
@@ -98,7 +96,7 @@ releases:
   values:
   - ./templates/values.yaml.gotmpl
   needs:
-  - external-secrets/onepassword
+  - external-secrets/onepassword-connect
 
 - name: flux-instance
   namespace: flux-system
